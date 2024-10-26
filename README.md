@@ -12,23 +12,55 @@ A Go program that calculates trait inheritance probabilities in pepper breeding 
 
 ## Genetic Background
 
-The calculator works with three main inheritance patterns:
-- Leaf Shape: Regular (L) dominant over Mutant (l)
-- Foliage Color: Green (C) dominant over Purple (c)
-- Fruit Shape: Long (F) dominant over Round (f)
+The calculator works with Mendelian inheritance patterns for multiple traits. Each trait is defined by:
+- A dominant allele (typically represented by a capital letter, e.g., 'A')
+- A recessive allele (typically represented by a lowercase letter, e.g., 'a')
+- Whether the trait shows dominant or recessive inheritance
+
+Common pepper traits that follow Mendelian inheritance include:
+- Leaf shape variations
+- Foliage coloration
+- Fruit shape
+- Plant height
+- Fruit position
+- And others
 
 ### Inheritance Patterns
 
 F1 Generation:
-- Shows dominant traits from both parents
-- All plants look identical
-- Used to determine which traits are dominant
+- First generation after crossing two parent lines
+- All plants show uniform appearance
+- Reveals which traits are dominant/recessive
+- Heterozygous for all differing parental traits
 
-F2 Generation Distribution (64 plants):
-- 27/64 (42.2%): All dominant traits
-- 9/64 (14.1%): Single recessive trait
-- 3/64 (4.7%): Double recessive traits
-- 1/64 (1.6%): Triple recessive traits
+F2 Generation Distribution:
+For each individual trait:
+- 3/4 (75%) show dominant phenotype
+- 1/4 (25%) show recessive phenotype
+
+For multiple traits, the probabilities follow multiplicative inheritance:
+- For n traits, there are 2^n possible combinations
+- Probability of all dominant traits: (3/4)^n
+- Probability of all recessive traits: (1/4)^n
+- Other combinations follow binomial distribution
+
+Example probabilities for different numbers of traits:
+```
+Single trait (n=1):
+- Dominant (A_): 3/4
+- Recessive (aa): 1/4
+
+Two traits (n=2):
+- Both dominant (A_B_): 9/16
+- One recessive: 3/16 each
+- Both recessive (aabb): 1/16
+
+Three traits (n=3):
+- All dominant (A_B_C_): 27/64
+- Two dominant, one recessive: 9/64 each
+- One dominant, two recessive: 3/64 each
+- All recessive (aabbcc): 1/64
+```
 
 ## Usage
 
