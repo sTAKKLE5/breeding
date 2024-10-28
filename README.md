@@ -9,6 +9,9 @@ A Go program that calculates trait inheritance probabilities in pepper breeding 
 - Provides probability ratios and expected plant numbers
 - Sorts results by probability for easy interpretation
 - Handles multiple plant traits simultaneously
+- Filters combinations based on target genotypes
+- Calculates total probability for desired trait combinations
+- Provides human-readable trait descriptions
 
 ## Genetic Background
 
@@ -62,49 +65,6 @@ Three traits (n=3):
 - All recessive (aabbcc): 1/64
 ```
 
-## Usage
-
-```go
-// Define parent plants with their traits
-purpleFlash := Plant{
-    Name: "Purple Flash",
-    Traits: []Trait{
-        {Name: "Regular Leave Shape", Dominant: true, GeneLabel: "L"},
-        {Name: "Purple Foliage", Dominant: false, GeneLabel: "C"},
-        {Name: "Round Fruit Shape", Dominant: false, GeneLabel: "F"},
-    },
-}
-
-candlelight := Plant{
-    Name: "Candlelight Mutant",
-    Traits: []Trait{
-        {Name: "Mutant Leave Shape", Dominant: false, GeneLabel: "L"},
-        {Name: "Green Foliage", Dominant: true, GeneLabel: "C"},
-        {Name: "Long Fruit Shape", Dominant: true, GeneLabel: "F"},
-    },
-}
-
-// Calculate probabilities for a specific number of plants
-combinations := calculateF2Probabilities(purpleFlash, candlelight, 32)
-```
-
-## Example Output
-
-```
-F2 Generation Probabilities for Purple Flash × Candlelight Mutant
-Total plants: 32
-=====================================================
-27/64 (42.2%) = Regular Leave Shape, Green Foliage, Long Fruit Shape
-    Genotype: L_ C_ F_
-    Expected number of plants: 13.5
-
-9/64 (14.1%) = Mutant Leave Shape, Green Foliage, Long Fruit Shape
-    Genotype: ll C_ F_
-    Expected number of plants: 4.5
-
-[... additional combinations ...]
-```
-
 ## Structure
 
 ### Trait Type
@@ -136,6 +96,90 @@ type TraitCombination struct {
 }
 ```
 
+### TargetGenotype Type
+```go
+type TargetGenotype struct {
+    Genotype    string    // Genetic notation (e.g., "ll")
+    Description string    // Human-readable description
+}
+```
+
+### SummaryStats Type
+```go
+type SummaryStats struct {
+    TotalProbabilityNum   int     // Numerator of total probability
+    TotalProbabilityDenom int     // Denominator of total probability
+    Percentage            float64 // Percentage of total
+    ExpectedPlants        float64 // Expected number of plants
+}
+```
+
+## Usage
+
+```go
+// Define parent plants with their traits
+purpleFlash := Plant{
+    Name: "Purple Flash",
+    Traits: []Trait{
+        {Name: "Regular Leave Shape", Dominant: true, GeneLabel: "L"},
+        {Name: "Purple Foliage", Dominant: false, GeneLabel: "C"},
+        {Name: "Round Fruit Shape", Dominant: false, GeneLabel: "F"},
+    },
+}
+
+candlelight := Plant{
+    Name: "Candlelight Mutant",
+    Traits: []Trait{
+        {Name: "Mutant Leave Shape", Dominant: false, GeneLabel: "L"},
+        {Name: "Green Foliage", Dominant: true, GeneLabel: "C"},
+        {Name: "Long Fruit Shape", Dominant: true, GeneLabel: "F"},
+    },
+}
+
+// Define target genotypes you're interested in
+targetGenotypes := []TargetGenotype{
+    {Genotype: "ll", Description: getGenotypeDescription("ll", purpleFlash, candlelight)},
+    {Genotype: "cc", Description: getGenotypeDescription("cc", purpleFlash, candlelight)},
+}
+
+// Calculate all combinations
+allCombinations := calculateF2Probabilities(purpleFlash, candlelight, 64)
+
+// Filter combinations based on target genotypes
+filteredCombinations, summary := filterCombinations(allCombinations, targetGenotypes)
+```
+
+## Example Output
+
+```
+F2 Generation Probabilities for Purple Flash × Candlelight Mutant
+Total plants: 64
+
+Target traits:
+- Mutant Leave Shape (ll)
+- Purple Foliage (cc)
+
+Matching Combinations:
+=====================
+3/64 (4.7%) = Mutant Leave Shape, Purple Foliage, Long Fruit Shape
+    Genotype: ll cc F_
+    Expected number of plants: 3.0
+
+1/64 (1.6%) = Mutant Leave Shape, Purple Foliage, Round Fruit Shape
+    Genotype: ll cc ff
+    Expected number of plants: 1.0
+
+Summary Statistics:
+==================
+Total Probability: 4/64
+Percentage: 6.3%
+Expected Total Plants with Target Traits: 4.0
+
+All Combinations:
+===============
+[Full list of all possible combinations follows...]
+```
+
 ## Practical Applications
 
 1. Breeding Program Planning:
@@ -153,6 +197,12 @@ type TraitCombination struct {
    - Focus on desired trait combinations
    - Track inheritance patterns
 
+4. Target Trait Analysis:
+   - Calculate probabilities for specific trait combinations
+   - Determine required population sizes for rare combinations
+   - Plan selective breeding programs
+   - Estimate success rates for desired traits
+
 ## Limitations
 
 - Assumes simple dominant/recessive inheritance
@@ -169,3 +219,12 @@ type TraitCombination struct {
 - Support for larger trait sets
 - Add F3 generation predictions
 - Include confidence intervals
+- Add support for more complex filtering patterns
+- Add visual representation of trait distributions
+- Support for inheritance pattern validation
+- Add batch processing capabilities
+
+## License
+
+MIT License
+
