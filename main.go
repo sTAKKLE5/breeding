@@ -108,11 +108,6 @@ func main() {
 				GeneLabel: "L",
 			},
 			{
-				Name:      "Purple Flowers",
-				Dominant:  false,
-				GeneLabel: "A",
-			},
-			{
 				Name:      "Purple Foliage",
 				Dominant:  false,
 				GeneLabel: "C",
@@ -132,11 +127,6 @@ func main() {
 				Name:      "Mutant Leave Shape",
 				Dominant:  false,
 				GeneLabel: "L",
-			},
-			{
-				Name:      "White Flowers",
-				Dominant:  true,
-				GeneLabel: "A",
 			},
 			{
 				Name:      "Green Foliage",
