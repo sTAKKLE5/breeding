@@ -27,6 +27,32 @@ type TraitCombination struct {
 	Expected     float64
 }
 
+type SummaryStats struct {
+	TotalProbabilityNum   int
+	TotalProbabilityDenom int
+	Percentage            float64
+	ExpectedPlants        float64
+}
+
+type TargetGenotype struct {
+	Genotype    string
+	Description string
+}
+
+func getGenotypeDescription(genotype string, plant1, plant2 Plant) string {
+	for i, trait := range plant1.Traits {
+		lowerGenotype := strings.ToLower(trait.GeneLabel + trait.GeneLabel)
+		if genotype == lowerGenotype {
+			if plant1.Traits[i].Dominant {
+				return plant2.Traits[i].Name // If plant1 trait is dominant, recessive comes from plant2
+			} else {
+				return plant1.Traits[i].Name // If plant1 trait is recessive, it comes from plant1
+			}
+		}
+	}
+	return genotype
+}
+
 func calculateDenominator(numTraits int) int {
 	return int(math.Pow(2, float64(2*numTraits)))
 }
@@ -90,12 +116,48 @@ func calculateF2Probabilities(plant1, plant2 Plant, totalPlants int) []TraitComb
 		})
 	}
 
-	// Sort combinations by probability in descending order
 	sort.Slice(combinations, func(i, j int) bool {
 		return combinations[i].Probability > combinations[j].Probability
 	})
 
 	return combinations
+}
+
+func filterCombinations(combinations []TraitCombination, targetGenotypes []TargetGenotype) ([]TraitCombination, SummaryStats) {
+	if len(targetGenotypes) == 0 {
+		return combinations, SummaryStats{
+			TotalProbabilityNum:   64,
+			TotalProbabilityDenom: 64,
+			Percentage:            100.0,
+			ExpectedPlants:        float64(64),
+		}
+	}
+
+	filtered := make([]TraitCombination, 0)
+	totalProb := 0
+
+	for _, combo := range combinations {
+		matches := true
+		for _, target := range targetGenotypes {
+			if !strings.Contains(combo.GeneNotation, target.Genotype) {
+				matches = false
+				break
+			}
+		}
+		if matches {
+			filtered = append(filtered, combo)
+			totalProb += combo.Probability
+		}
+	}
+
+	summary := SummaryStats{
+		TotalProbabilityNum:   totalProb,
+		TotalProbabilityDenom: 64,
+		Percentage:            float64(totalProb) / 64.0 * 100.0,
+		ExpectedPlants:        float64(totalProb) / 64.0 * (combinations[0].Expected * 64.0 / float64(combinations[0].Probability)),
+	}
+
+	return filtered, summary
 }
 
 func main() {
@@ -141,15 +203,50 @@ func main() {
 		},
 	}
 
-	// Calculate for 32 plants
 	totalPlants := 64
 
-	combinations := calculateF2Probabilities(purpleFlash, candlelight, totalPlants)
+	// Define target genotypes with descriptions
+	targetGenotypes := []TargetGenotype{
+		{Genotype: "ll", Description: getGenotypeDescription("ll", purpleFlash, candlelight)},
+		{Genotype: "cc", Description: getGenotypeDescription("cc", purpleFlash, candlelight)},
+	}
+
+	// Calculate all combinations
+	allCombinations := calculateF2Probabilities(purpleFlash, candlelight, totalPlants)
+
+	// Filter combinations based on target genotypes
+	filteredCombinations, summary := filterCombinations(allCombinations, targetGenotypes)
 
 	fmt.Printf("\nF2 Generation Probabilities for %s × %s\n", purpleFlash.Name, candlelight.Name)
-	fmt.Printf("Total plants: %d\n\n", totalPlants)
+	fmt.Printf("Total plants: %d\n", totalPlants)
+	fmt.Println("\nTarget traits:")
+	for _, target := range targetGenotypes {
+		fmt.Printf("- %s (%s)\n", target.Description, target.Genotype)
+	}
+	fmt.Println()
 
-	for _, combo := range combinations {
+	fmt.Println("Matching Combinations:")
+	fmt.Println("=====================")
+	for _, combo := range filteredCombinations {
+		percentage := float64(combo.Probability) / float64(combo.Denominator) * 100
+		fmt.Printf("%d/%d (%0.1f%%) = %s\n",
+			combo.Probability,
+			combo.Denominator,
+			percentage,
+			combo.Description)
+		fmt.Printf("    Genotype: %s\n", combo.GeneNotation)
+		fmt.Printf("    Expected number of plants: %.1f\n\n", combo.Expected)
+	}
+
+	fmt.Println("\nSummary Statistics:")
+	fmt.Println("==================")
+	fmt.Printf("Total Probability: %d/%d\n", summary.TotalProbabilityNum, summary.TotalProbabilityDenom)
+	fmt.Printf("Percentage: %.1f%%\n", summary.Percentage)
+	fmt.Printf("Expected Total Plants with Target Traits: %.1f\n", summary.ExpectedPlants)
+
+	fmt.Println("\nAll Combinations:")
+	fmt.Println("===============")
+	for _, combo := range allCombinations {
 		percentage := float64(combo.Probability) / float64(combo.Denominator) * 100
 		fmt.Printf("%d/%d (%0.1f%%) = %s\n",
 			combo.Probability,
