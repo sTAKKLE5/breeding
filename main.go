@@ -39,14 +39,42 @@ type TargetGenotype struct {
 	Description string
 }
 
+func isGenotypeMatch(genotype string, geneNotation string) bool {
+	// Handle recessive case (e.g., "ll")
+	if len(genotype) == 2 && genotype[0] == genotype[1] {
+		return strings.Contains(geneNotation, genotype)
+	}
+
+	// Handle dominant case (e.g., "L")
+	// Match either "L_" or "LL"
+	if len(genotype) == 1 {
+		dominantPattern := genotype + "_"
+		homozygousPattern := strings.ToUpper(genotype + genotype)
+		return strings.Contains(geneNotation, dominantPattern) ||
+			strings.Contains(geneNotation, homozygousPattern)
+	}
+
+	return false
+}
+
 func getGenotypeDescription(genotype string, plant1, plant2 Plant) string {
 	for i, trait := range plant1.Traits {
+		// Handle recessive case
 		lowerGenotype := strings.ToLower(trait.GeneLabel + trait.GeneLabel)
 		if genotype == lowerGenotype {
 			if plant1.Traits[i].Dominant {
-				return plant2.Traits[i].Name // If plant1 trait is dominant, recessive comes from plant2
+				return plant2.Traits[i].Name
 			} else {
-				return plant1.Traits[i].Name // If plant1 trait is recessive, it comes from plant1
+				return plant1.Traits[i].Name
+			}
+		}
+
+		// Handle dominant case
+		if genotype == trait.GeneLabel {
+			if plant1.Traits[i].Dominant {
+				return plant1.Traits[i].Name
+			} else {
+				return plant2.Traits[i].Name
 			}
 		}
 	}
@@ -139,7 +167,7 @@ func filterCombinations(combinations []TraitCombination, targetGenotypes []Targe
 	for _, combo := range combinations {
 		matches := true
 		for _, target := range targetGenotypes {
-			if !strings.Contains(combo.GeneNotation, target.Genotype) {
+			if !isGenotypeMatch(target.Genotype, combo.GeneNotation) {
 				matches = false
 				break
 			}
@@ -205,16 +233,13 @@ func main() {
 
 	totalPlants := 64
 
-	// Define target genotypes with descriptions
+	// Example of filtering for both dominant and recessive traits
 	targetGenotypes := []TargetGenotype{
 		{Genotype: "ll", Description: getGenotypeDescription("ll", purpleFlash, candlelight)},
 		{Genotype: "cc", Description: getGenotypeDescription("cc", purpleFlash, candlelight)},
 	}
 
-	// Calculate all combinations
 	allCombinations := calculateF2Probabilities(purpleFlash, candlelight, totalPlants)
-
-	// Filter combinations based on target genotypes
 	filteredCombinations, summary := filterCombinations(allCombinations, targetGenotypes)
 
 	fmt.Printf("\nF2 Generation Probabilities for %s × %s\n", purpleFlash.Name, candlelight.Name)

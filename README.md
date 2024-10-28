@@ -12,6 +12,7 @@ A Go program that calculates trait inheritance probabilities in pepper breeding 
 - Filters combinations based on target genotypes
 - Calculates total probability for desired trait combinations
 - Provides human-readable trait descriptions
+- Supports filtering for both dominant and recessive traits
 
 ## Genetic Background
 
@@ -99,7 +100,7 @@ type TraitCombination struct {
 ### TargetGenotype Type
 ```go
 type TargetGenotype struct {
-    Genotype    string    // Genetic notation (e.g., "ll")
+    Genotype    string    // Genetic notation (e.g., "ll" or "L")
     Description string    // Human-readable description
 }
 ```
@@ -116,6 +117,7 @@ type SummaryStats struct {
 
 ## Usage
 
+### Basic Usage
 ```go
 // Define parent plants with their traits
 purpleFlash := Plant{
@@ -136,48 +138,81 @@ candlelight := Plant{
     },
 }
 
-// Define target genotypes you're interested in
-targetGenotypes := []TargetGenotype{
-    {Genotype: "ll", Description: getGenotypeDescription("ll", purpleFlash, candlelight)},
-    {Genotype: "cc", Description: getGenotypeDescription("cc", purpleFlash, candlelight)},
-}
-
 // Calculate all combinations
 allCombinations := calculateF2Probabilities(purpleFlash, candlelight, 64)
+```
+
+### Filtering for Specific Traits
+You can filter for specific trait combinations using either dominant or recessive notation:
+
+```go
+// For recessive traits (use doubled letters)
+targetGenotypes := []TargetGenotype{
+    {Genotype: "ll", Description: getGenotypeDescription("ll", purpleFlash, candlelight)}, // Mutant leaves
+    {Genotype: "cc", Description: getGenotypeDescription("cc", purpleFlash, candlelight)}, // Purple foliage
+}
+
+// For dominant traits (use single letters)
+targetGenotypes := []TargetGenotype{
+    {Genotype: "L", Description: getGenotypeDescription("L", purpleFlash, candlelight)}, // Regular leaves
+    {Genotype: "F", Description: getGenotypeDescription("F", purpleFlash, candlelight)}, // Long fruit
+}
+
+// Mix of dominant and recessive
+targetGenotypes := []TargetGenotype{
+    {Genotype: "L", Description: getGenotypeDescription("L", purpleFlash, candlelight)},  // Regular leaves
+    {Genotype: "cc", Description: getGenotypeDescription("cc", purpleFlash, candlelight)}, // Purple foliage
+}
 
 // Filter combinations based on target genotypes
 filteredCombinations, summary := filterCombinations(allCombinations, targetGenotypes)
 ```
 
-## Example Output
+## Genotype Notation
 
+The calculator supports two types of genotype notation for filtering:
+
+1. Recessive traits: Use doubled lowercase letters
+   - `ll` for mutant leaves
+   - `cc` for purple foliage
+   - `ff` for round fruit
+
+2. Dominant traits: Use single uppercase letters
+   - `L` for regular leaves
+   - `C` for green foliage
+   - `F` for long fruit
+
+The genotype notation in results uses:
+- `L_` indicates presence of dominant allele (LL or Ll)
+- `ll` indicates homozygous recessive
+- Space separated for multiple traits (e.g., `L_ cc F_`)
+
+## Example Outputs
+
+### Filtering for Mixed Traits
 ```
 F2 Generation Probabilities for Purple Flash × Candlelight Mutant
 Total plants: 64
 
 Target traits:
-- Mutant Leave Shape (ll)
+- Regular Leave Shape (L)
 - Purple Foliage (cc)
 
 Matching Combinations:
 =====================
-3/64 (4.7%) = Mutant Leave Shape, Purple Foliage, Long Fruit Shape
-    Genotype: ll cc F_
-    Expected number of plants: 3.0
+9/64 (14.1%) = Regular Leave Shape, Purple Foliage, Long Fruit Shape
+    Genotype: L_ cc F_
+    Expected number of plants: 9.0
 
-1/64 (1.6%) = Mutant Leave Shape, Purple Foliage, Round Fruit Shape
-    Genotype: ll cc ff
-    Expected number of plants: 1.0
+3/64 (4.7%) = Regular Leave Shape, Purple Foliage, Round Fruit Shape
+    Genotype: L_ cc ff
+    Expected number of plants: 3.0
 
 Summary Statistics:
 ==================
-Total Probability: 4/64
-Percentage: 6.3%
-Expected Total Plants with Target Traits: 4.0
-
-All Combinations:
-===============
-[Full list of all possible combinations follows...]
+Total Probability: 12/64
+Percentage: 18.8%
+Expected Total Plants with Target Traits: 12.0
 ```
 
 ## Practical Applications
@@ -227,4 +262,3 @@ All Combinations:
 ## License
 
 MIT License
-
