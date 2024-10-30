@@ -152,12 +152,15 @@ func calculateF2Probabilities(plant1, plant2 Plant, totalPlants int) []TraitComb
 }
 
 func filterCombinations(combinations []TraitCombination, targetGenotypes []TargetGenotype) ([]TraitCombination, SummaryStats) {
+	// Get denominator from the first combination
+	totalCombinations := combinations[0].Denominator
+
 	if len(targetGenotypes) == 0 {
 		return combinations, SummaryStats{
-			TotalProbabilityNum:   64,
-			TotalProbabilityDenom: 64,
+			TotalProbabilityNum:   totalCombinations,
+			TotalProbabilityDenom: totalCombinations,
 			Percentage:            100.0,
-			ExpectedPlants:        float64(64),
+			ExpectedPlants:        float64(totalCombinations),
 		}
 	}
 
@@ -180,9 +183,9 @@ func filterCombinations(combinations []TraitCombination, targetGenotypes []Targe
 
 	summary := SummaryStats{
 		TotalProbabilityNum:   totalProb,
-		TotalProbabilityDenom: 64,
-		Percentage:            float64(totalProb) / 64.0 * 100.0,
-		ExpectedPlants:        float64(totalProb) / 64.0 * (combinations[0].Expected * 64.0 / float64(combinations[0].Probability)),
+		TotalProbabilityDenom: totalCombinations,
+		Percentage:            float64(totalProb) / float64(totalCombinations) * 100.0,
+		ExpectedPlants:        float64(totalProb) / float64(totalCombinations) * (combinations[0].Expected * float64(totalCombinations) / float64(combinations[0].Probability)),
 	}
 
 	return filtered, summary
