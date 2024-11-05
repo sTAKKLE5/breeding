@@ -24,7 +24,6 @@ const (
 	colorBoldBlue   = "\033[1;34m"
 	colorBoldPurple = "\033[1;35m"
 	colorBoldCyan   = "\033[1;36m"
-	colorBoldWhite  = "\033[1;37m"
 )
 
 type Trait struct {
@@ -222,7 +221,7 @@ func getResults(motherPlant Plant, fatherPlant Plant, totalPlants int, targetGen
 	// Title and basic info
 	fmt.Printf("\n%s\n", colored(fmt.Sprintf("F2 Generation Probabilities for %s × %s",
 		motherPlant.Name, fatherPlant.Name), colorBoldCyan))
-	fmt.Printf("%s: %d\n", colored("Total plants", colorBoldWhite), totalPlants)
+	fmt.Printf("%s: %d\n", "Total plants", totalPlants)
 
 	// Target traits section if specified
 	if len(targetGenotypes) > 0 {
@@ -238,8 +237,7 @@ func getResults(motherPlant Plant, fatherPlant Plant, totalPlants int, targetGen
 		fmt.Println(colored("=====================", colorGreen))
 		for _, combo := range filteredCombinations {
 			percentage := float64(combo.Probability) / float64(combo.Denominator) * 100
-			fmt.Printf("%s %s = %s\n",
-				colored(fmt.Sprintf("%d/%d", combo.Probability, combo.Denominator), colorBoldWhite),
+			fmt.Printf("%s %s = %s\n", fmt.Sprintf("%d/%d", combo.Probability, combo.Denominator),
 				colored(fmt.Sprintf("(%0.1f%%)", percentage), colorCyan),
 				colored(combo.Description, colorGreen))
 			fmt.Printf("    Genotype: %s\n", colored(combo.GeneNotation, colorPurple))
@@ -249,14 +247,11 @@ func getResults(motherPlant Plant, fatherPlant Plant, totalPlants int, targetGen
 
 		fmt.Printf("%s:\n", colored("Target Traits Summary", colorBoldBlue))
 		fmt.Println(colored("=====================", colorBlue))
-		fmt.Printf("%s: %s\n",
-			colored("Total Probability", colorBoldWhite),
+		fmt.Printf("%s: %s\n", "Total Probability",
 			colored(fmt.Sprintf("%d/%d", summary.TotalProbabilityNum, summary.TotalProbabilityDenom), colorWhite))
-		fmt.Printf("%s: %s\n",
-			colored("Percentage", colorBoldWhite),
+		fmt.Printf("%s: %s\n", "Percentage",
 			colored(fmt.Sprintf("%.1f%%", summary.Percentage), colorCyan))
-		fmt.Printf("%s: %s\n\n",
-			colored("Expected Total Plants with Target Traits", colorBoldWhite),
+		fmt.Printf("%s: %s\n\n", "Expected Total Plants with Target Traits",
 			colored(fmt.Sprintf("%.1f", summary.ExpectedPlants), colorYellow))
 	}
 
@@ -284,8 +279,7 @@ func getResults(motherPlant Plant, fatherPlant Plant, totalPlants int, targetGen
 			descColor = colorGreen
 		}
 
-		fmt.Printf("%s %s = %s\n",
-			colored(fmt.Sprintf("%d/%d", combo.Probability, combo.Denominator), colorBoldWhite),
+		fmt.Printf("%s %s = %s\n", fmt.Sprintf("%d/%d", combo.Probability, combo.Denominator),
 			colored(fmt.Sprintf("(%0.1f%%)", percentage), colorCyan),
 			colored(combo.Description, descColor))
 		fmt.Printf("    Genotype: %s\n", colored(combo.GeneNotation, colorPurple))
