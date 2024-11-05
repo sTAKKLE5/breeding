@@ -239,7 +239,7 @@ func getResults(motherPlant Plant, fatherPlant Plant, totalPlants int, targetGen
 
 func main() {
 	totalPlants := 64
-	purpleFlash := Plant{
+	motherPlant := Plant{
 		Name: "Purple Flash",
 		Traits: []Trait{
 			{
@@ -260,7 +260,7 @@ func main() {
 		},
 	}
 
-	candlelight := Plant{
+	fatherPlant := Plant{
 		Name: "Candlelight Mutant",
 		Traits: []Trait{
 			{
@@ -281,10 +281,10 @@ func main() {
 		},
 	}
 	targetGenotypes := []TargetGenotype{
-		{Genotype: "ll", Description: getGenotypeDescription("ll", purpleFlash, candlelight)},
-		{Genotype: "cc", Description: getGenotypeDescription("cc", purpleFlash, candlelight)},
+		{Genotype: "ll", Description: getGenotypeDescription("ll", motherPlant, fatherPlant)},
+		{Genotype: "cc", Description: getGenotypeDescription("cc", motherPlant, fatherPlant)},
 	}
 
-	getResults(purpleFlash, candlelight, totalPlants, targetGenotypes)
+	getResults(motherPlant, fatherPlant, totalPlants, targetGenotypes)
 
 }
