@@ -8,6 +8,25 @@ import (
 	"strings"
 )
 
+// At the top of your file, add these constants:
+const (
+	colorReset  = "\033[0m"
+	colorGreen  = "\033[32m"
+	colorYellow = "\033[33m"
+	colorBlue   = "\033[34m"
+	colorPurple = "\033[35m"
+	colorCyan   = "\033[36m"
+	colorWhite  = "\033[37m"
+
+	// Bold versions
+	colorBoldGreen  = "\033[1;32m"
+	colorBoldYellow = "\033[1;33m"
+	colorBoldBlue   = "\033[1;34m"
+	colorBoldPurple = "\033[1;35m"
+	colorBoldCyan   = "\033[1;36m"
+	colorBoldWhite  = "\033[1;37m"
+)
+
 type Trait struct {
 	Name      string
 	Dominant  bool
@@ -38,6 +57,10 @@ type SummaryStats struct {
 type TargetGenotype struct {
 	Genotype    string
 	Description string
+}
+
+func colored(text string, color string) string {
+	return color + text + colorReset
 }
 
 func isGenotypeMatch(genotype string, geneNotation string) bool {
@@ -196,34 +219,84 @@ func getResults(motherPlant Plant, fatherPlant Plant, totalPlants int, targetGen
 	allCombinations := calculateF2Probabilities(motherPlant, fatherPlant, totalPlants)
 	filteredCombinations, summary := filterCombinations(allCombinations, targetGenotypes)
 
-	fmt.Printf("\nF2 Generation Probabilities for %s × %s\n", motherPlant.Name, fatherPlant.Name)
-	fmt.Printf("Total plants: %d\n", totalPlants)
-	fmt.Println("\nTarget traits:")
-	for _, target := range targetGenotypes {
-		fmt.Printf("- %s (%s)\n", target.Description, target.Genotype)
-	}
-	fmt.Println()
+	// Title and basic info
+	fmt.Printf("\n%s\n", colored(fmt.Sprintf("F2 Generation Probabilities for %s × %s",
+		motherPlant.Name, fatherPlant.Name), colorBoldCyan))
+	fmt.Printf("%s: %d\n", colored("Total plants", colorBoldWhite), totalPlants)
 
-	fmt.Println("Matching Combinations:")
-	fmt.Println("=====================")
-	for _, combo := range filteredCombinations {
+	// Target traits section if specified
+	if len(targetGenotypes) > 0 {
+		fmt.Printf("\n%s:\n", colored("Target traits", colorBoldYellow))
+		for _, target := range targetGenotypes {
+			fmt.Printf("- %s (%s)\n",
+				colored(target.Description, colorYellow),
+				colored(target.Genotype, colorYellow))
+		}
+		fmt.Println()
+
+		fmt.Printf("%s:\n", colored("Matching Combinations", colorBoldGreen))
+		fmt.Println(colored("=====================", colorGreen))
+		for _, combo := range filteredCombinations {
+			percentage := float64(combo.Probability) / float64(combo.Denominator) * 100
+			fmt.Printf("%s %s = %s\n",
+				colored(fmt.Sprintf("%d/%d", combo.Probability, combo.Denominator), colorBoldWhite),
+				colored(fmt.Sprintf("(%0.1f%%)", percentage), colorCyan),
+				colored(combo.Description, colorGreen))
+			fmt.Printf("    Genotype: %s\n", colored(combo.GeneNotation, colorPurple))
+			fmt.Printf("    Expected number of plants: %s\n\n",
+				colored(fmt.Sprintf("%.1f", combo.Expected), colorYellow))
+		}
+
+		fmt.Printf("%s:\n", colored("Target Traits Summary", colorBoldBlue))
+		fmt.Println(colored("=====================", colorBlue))
+		fmt.Printf("%s: %s\n",
+			colored("Total Probability", colorBoldWhite),
+			colored(fmt.Sprintf("%d/%d", summary.TotalProbabilityNum, summary.TotalProbabilityDenom), colorWhite))
+		fmt.Printf("%s: %s\n",
+			colored("Percentage", colorBoldWhite),
+			colored(fmt.Sprintf("%.1f%%", summary.Percentage), colorCyan))
+		fmt.Printf("%s: %s\n\n",
+			colored("Expected Total Plants with Target Traits", colorBoldWhite),
+			colored(fmt.Sprintf("%.1f", summary.ExpectedPlants), colorYellow))
+	}
+
+	// All possible combinations section
+	fmt.Printf("%s:\n", colored("All Possible Combinations", colorBoldPurple))
+	fmt.Println(colored("=======================", colorPurple))
+	for _, combo := range allCombinations {
 		percentage := float64(combo.Probability) / float64(combo.Denominator) * 100
-		fmt.Printf("%d/%d (%0.1f%%) = %s\n",
-			combo.Probability,
-			combo.Denominator,
-			percentage,
-			combo.Description)
-		fmt.Printf("    Genotype: %s\n", combo.GeneNotation)
-		fmt.Printf("    Expected number of plants: %.1f\n\n", combo.Expected)
+
+		// Determine if this combination matches target traits
+		isTargetMatch := false
+		if len(targetGenotypes) > 0 {
+			isTargetMatch = true
+			for _, target := range targetGenotypes {
+				if !isGenotypeMatch(target.Genotype, combo.GeneNotation) {
+					isTargetMatch = false
+					break
+				}
+			}
+		}
+
+		// Use different colors for matching combinations
+		descColor := colorWhite
+		if isTargetMatch {
+			descColor = colorGreen
+		}
+
+		fmt.Printf("%s %s = %s\n",
+			colored(fmt.Sprintf("%d/%d", combo.Probability, combo.Denominator), colorBoldWhite),
+			colored(fmt.Sprintf("(%0.1f%%)", percentage), colorCyan),
+			colored(combo.Description, descColor))
+		fmt.Printf("    Genotype: %s\n", colored(combo.GeneNotation, colorPurple))
+		fmt.Printf("    Expected number of plants: %s\n",
+			colored(fmt.Sprintf("%.1f", combo.Expected), colorYellow))
+		if isTargetMatch {
+			fmt.Printf("    %s\n", colored("★ Matches target traits", colorBoldYellow))
+		}
+		fmt.Println()
 	}
-
-	fmt.Println("\nSummary Statistics:")
-	fmt.Println("==================")
-	fmt.Printf("Total Probability: %d/%d\n", summary.TotalProbabilityNum, summary.TotalProbabilityDenom)
-	fmt.Printf("Percentage: %.1f%%\n", summary.Percentage)
-	fmt.Printf("Expected Total Plants with Target Traits: %.1f\n", summary.ExpectedPlants)
 }
-
 func parseTraits(traitsStr string) []Trait {
 	traits := []Trait{}
 	traitsArr := strings.Split(traitsStr, ",")
