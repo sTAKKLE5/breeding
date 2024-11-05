@@ -191,7 +191,54 @@ func filterCombinations(combinations []TraitCombination, targetGenotypes []Targe
 	return filtered, summary
 }
 
+func getResults(motherPlant Plant, fatherPlant Plant, totalPlants int, targetGenotypes []TargetGenotype) {
+
+	allCombinations := calculateF2Probabilities(motherPlant, fatherPlant, totalPlants)
+	filteredCombinations, summary := filterCombinations(allCombinations, targetGenotypes)
+
+	fmt.Printf("\nF2 Generation Probabilities for %s × %s\n", motherPlant.Name, fatherPlant.Name)
+	fmt.Printf("Total plants: %d\n", totalPlants)
+	fmt.Println("\nTarget traits:")
+	for _, target := range targetGenotypes {
+		fmt.Printf("- %s (%s)\n", target.Description, target.Genotype)
+	}
+	fmt.Println()
+
+	fmt.Println("Matching Combinations:")
+	fmt.Println("=====================")
+	for _, combo := range filteredCombinations {
+		percentage := float64(combo.Probability) / float64(combo.Denominator) * 100
+		fmt.Printf("%d/%d (%0.1f%%) = %s\n",
+			combo.Probability,
+			combo.Denominator,
+			percentage,
+			combo.Description)
+		fmt.Printf("    Genotype: %s\n", combo.GeneNotation)
+		fmt.Printf("    Expected number of plants: %.1f\n\n", combo.Expected)
+	}
+
+	fmt.Println("\nSummary Statistics:")
+	fmt.Println("==================")
+	fmt.Printf("Total Probability: %d/%d\n", summary.TotalProbabilityNum, summary.TotalProbabilityDenom)
+	fmt.Printf("Percentage: %.1f%%\n", summary.Percentage)
+	fmt.Printf("Expected Total Plants with Target Traits: %.1f\n", summary.ExpectedPlants)
+
+	fmt.Println("\nAll Combinations:")
+	fmt.Println("===============")
+	for _, combo := range allCombinations {
+		percentage := float64(combo.Probability) / float64(combo.Denominator) * 100
+		fmt.Printf("%d/%d (%0.1f%%) = %s\n",
+			combo.Probability,
+			combo.Denominator,
+			percentage,
+			combo.Description)
+		fmt.Printf("    Genotype: %s\n", combo.GeneNotation)
+		fmt.Printf("    Expected number of plants: %.1f\n\n", combo.Expected)
+	}
+}
+
 func main() {
+	totalPlants := 64
 	purpleFlash := Plant{
 		Name: "Purple Flash",
 		Traits: []Trait{
@@ -233,55 +280,11 @@ func main() {
 			},
 		},
 	}
-
-	totalPlants := 64
-
-	// Example of filtering for both dominant and recessive traits
 	targetGenotypes := []TargetGenotype{
 		{Genotype: "ll", Description: getGenotypeDescription("ll", purpleFlash, candlelight)},
 		{Genotype: "cc", Description: getGenotypeDescription("cc", purpleFlash, candlelight)},
 	}
 
-	allCombinations := calculateF2Probabilities(purpleFlash, candlelight, totalPlants)
-	filteredCombinations, summary := filterCombinations(allCombinations, targetGenotypes)
+	getResults(purpleFlash, candlelight, totalPlants, targetGenotypes)
 
-	fmt.Printf("\nF2 Generation Probabilities for %s × %s\n", purpleFlash.Name, candlelight.Name)
-	fmt.Printf("Total plants: %d\n", totalPlants)
-	fmt.Println("\nTarget traits:")
-	for _, target := range targetGenotypes {
-		fmt.Printf("- %s (%s)\n", target.Description, target.Genotype)
-	}
-	fmt.Println()
-
-	fmt.Println("Matching Combinations:")
-	fmt.Println("=====================")
-	for _, combo := range filteredCombinations {
-		percentage := float64(combo.Probability) / float64(combo.Denominator) * 100
-		fmt.Printf("%d/%d (%0.1f%%) = %s\n",
-			combo.Probability,
-			combo.Denominator,
-			percentage,
-			combo.Description)
-		fmt.Printf("    Genotype: %s\n", combo.GeneNotation)
-		fmt.Printf("    Expected number of plants: %.1f\n\n", combo.Expected)
-	}
-
-	fmt.Println("\nSummary Statistics:")
-	fmt.Println("==================")
-	fmt.Printf("Total Probability: %d/%d\n", summary.TotalProbabilityNum, summary.TotalProbabilityDenom)
-	fmt.Printf("Percentage: %.1f%%\n", summary.Percentage)
-	fmt.Printf("Expected Total Plants with Target Traits: %.1f\n", summary.ExpectedPlants)
-
-	fmt.Println("\nAll Combinations:")
-	fmt.Println("===============")
-	for _, combo := range allCombinations {
-		percentage := float64(combo.Probability) / float64(combo.Denominator) * 100
-		fmt.Printf("%d/%d (%0.1f%%) = %s\n",
-			combo.Probability,
-			combo.Denominator,
-			percentage,
-			combo.Description)
-		fmt.Printf("    Genotype: %s\n", combo.GeneNotation)
-		fmt.Printf("    Expected number of plants: %.1f\n\n", combo.Expected)
-	}
 }
