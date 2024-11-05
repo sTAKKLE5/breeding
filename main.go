@@ -193,7 +193,6 @@ func filterCombinations(combinations []TraitCombination, targetGenotypes []Targe
 }
 
 func getResults(motherPlant Plant, fatherPlant Plant, totalPlants int, targetGenotypes []TargetGenotype) {
-
 	allCombinations := calculateF2Probabilities(motherPlant, fatherPlant, totalPlants)
 	filteredCombinations, summary := filterCombinations(allCombinations, targetGenotypes)
 
@@ -223,19 +222,6 @@ func getResults(motherPlant Plant, fatherPlant Plant, totalPlants int, targetGen
 	fmt.Printf("Total Probability: %d/%d\n", summary.TotalProbabilityNum, summary.TotalProbabilityDenom)
 	fmt.Printf("Percentage: %.1f%%\n", summary.Percentage)
 	fmt.Printf("Expected Total Plants with Target Traits: %.1f\n", summary.ExpectedPlants)
-
-	fmt.Println("\nAll Combinations:")
-	fmt.Println("===============")
-	for _, combo := range allCombinations {
-		percentage := float64(combo.Probability) / float64(combo.Denominator) * 100
-		fmt.Printf("%d/%d (%0.1f%%) = %s\n",
-			combo.Probability,
-			combo.Denominator,
-			percentage,
-			combo.Description)
-		fmt.Printf("    Genotype: %s\n", combo.GeneNotation)
-		fmt.Printf("    Expected number of plants: %.1f\n\n", combo.Expected)
-	}
 }
 
 func parseTraits(traitsStr string) []Trait {
@@ -256,12 +242,31 @@ func parseTraits(traitsStr string) []Trait {
 	return traits
 }
 
+func parseTargetGenotypes(genotypesStr string, motherPlant, fatherPlant Plant) []TargetGenotype {
+	if genotypesStr == "" {
+		return []TargetGenotype{}
+	}
+
+	targetGenotypes := []TargetGenotype{}
+	genotypesArr := strings.Split(genotypesStr, ",")
+
+	for _, genotype := range genotypesArr {
+		targetGenotypes = append(targetGenotypes, TargetGenotype{
+			Genotype:    genotype,
+			Description: getGenotypeDescription(genotype, motherPlant, fatherPlant),
+		})
+	}
+
+	return targetGenotypes
+}
+
 func main() {
 	motherName := flag.String("motherName", "", "Name of the mother plant")
 	motherTraits := flag.String("motherTraits", "", "Traits of the mother plant in the format 'Name:Dominant:GeneLabel,Name:Dominant:GeneLabel,...'")
 	fatherName := flag.String("fatherName", "", "Name of the father plant")
 	fatherTraits := flag.String("fatherTraits", "", "Traits of the father plant in the format 'Name:Dominant:GeneLabel,Name:Dominant:GeneLabel,...'")
 	totalPlants := flag.Int("totalPlants", 64, "Total number of plants")
+	targetGenotypesStr := flag.String("targetGenotypes", "", "Comma-separated list of target genotypes (e.g., 'll,cc' for mutant leaves and purple foliage)")
 
 	flag.Parse()
 
@@ -280,10 +285,7 @@ func main() {
 		Traits: parseTraits(*fatherTraits),
 	}
 
-	targetGenotypes := []TargetGenotype{
-		{Genotype: "ll", Description: getGenotypeDescription("ll", motherPlant, fatherPlant)},
-		{Genotype: "cc", Description: getGenotypeDescription("cc", motherPlant, fatherPlant)},
-	}
+	targetGenotypes := parseTargetGenotypes(*targetGenotypesStr, motherPlant, fatherPlant)
 
 	getResults(motherPlant, fatherPlant, *totalPlants, targetGenotypes)
 }

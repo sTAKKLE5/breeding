@@ -9,6 +9,7 @@ A Go program that calculates trait inheritance probabilities in breeding project
 - **-fatherName**: Name of the father plant
 - **-fatherTraits**: Traits of the father plant in the same format as mother traits
 - **-totalPlants**: Total number of plants (default: 64)
+- **-targetGenotypes**: (Optional) List of target genotypes to filter for (e.g., "ll,cc" for mutant leaves and purple foliage)
 
 ## Core Features
 
@@ -47,7 +48,20 @@ go run main.go \
   -motherTraits="Regular Leave Shape:true:L,Purple Foliage:false:C,Round Fruit Shape:false:F" \
   -fatherName="Candlelight Mutant" \
   -fatherTraits="Mutant Leave Shape:false:L,Green Foliage:true:C,Long Fruit Shape:true:F" \
-  -totalPlants=64
+  -totalPlants=64 \
+  -targetGenotypes="ll,cc"  # Filter for mutant leaves and purple foliage
+```
+
+### Additional Examples
+
+Filter for dominant traits:
+```bash
+-targetGenotypes="L,F"  # Filter for regular leaves and long fruit
+```
+
+Mix of dominant and recessive:
+```bash
+-targetGenotypes="L,cc"  # Filter for regular leaves and purple foliage
 ```
 
 ## Example Output
