@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"math"
 	"sort"
@@ -237,54 +238,52 @@ func getResults(motherPlant Plant, fatherPlant Plant, totalPlants int, targetGen
 	}
 }
 
+func parseTraits(traitsStr string) []Trait {
+	traits := []Trait{}
+	traitsArr := strings.Split(traitsStr, ",")
+	for _, traitStr := range traitsArr {
+		parts := strings.Split(traitStr, ":")
+		if len(parts) != 3 {
+			continue
+		}
+		dominant := parts[1] == "true"
+		traits = append(traits, Trait{
+			Name:      parts[0],
+			Dominant:  dominant,
+			GeneLabel: parts[2],
+		})
+	}
+	return traits
+}
+
 func main() {
-	totalPlants := 64
+	motherName := flag.String("motherName", "", "Name of the mother plant")
+	motherTraits := flag.String("motherTraits", "", "Traits of the mother plant in the format 'Name:Dominant:GeneLabel,Name:Dominant:GeneLabel,...'")
+	fatherName := flag.String("fatherName", "", "Name of the father plant")
+	fatherTraits := flag.String("fatherTraits", "", "Traits of the father plant in the format 'Name:Dominant:GeneLabel,Name:Dominant:GeneLabel,...'")
+	totalPlants := flag.Int("totalPlants", 64, "Total number of plants")
+
+	flag.Parse()
+
+	if *motherName == "" || *motherTraits == "" || *fatherName == "" || *fatherTraits == "" {
+		fmt.Println("All plant names and traits must be provided")
+		return
+	}
+
 	motherPlant := Plant{
-		Name: "Purple Flash",
-		Traits: []Trait{
-			{
-				Name:      "Regular Leave Shape",
-				Dominant:  true,
-				GeneLabel: "L",
-			},
-			{
-				Name:      "Purple Foliage",
-				Dominant:  false,
-				GeneLabel: "C",
-			},
-			{
-				Name:      "Round Fruit Shape",
-				Dominant:  false,
-				GeneLabel: "F",
-			},
-		},
+		Name:   *motherName,
+		Traits: parseTraits(*motherTraits),
 	}
 
 	fatherPlant := Plant{
-		Name: "Candlelight Mutant",
-		Traits: []Trait{
-			{
-				Name:      "Mutant Leave Shape",
-				Dominant:  false,
-				GeneLabel: "L",
-			},
-			{
-				Name:      "Green Foliage",
-				Dominant:  true,
-				GeneLabel: "C",
-			},
-			{
-				Name:      "Long Fruit Shape",
-				Dominant:  true,
-				GeneLabel: "F",
-			},
-		},
+		Name:   *fatherName,
+		Traits: parseTraits(*fatherTraits),
 	}
+
 	targetGenotypes := []TargetGenotype{
 		{Genotype: "ll", Description: getGenotypeDescription("ll", motherPlant, fatherPlant)},
 		{Genotype: "cc", Description: getGenotypeDescription("cc", motherPlant, fatherPlant)},
 	}
 
-	getResults(motherPlant, fatherPlant, totalPlants, targetGenotypes)
-
+	getResults(motherPlant, fatherPlant, *totalPlants, targetGenotypes)
 }
